@@ -1,74 +1,76 @@
-# Keyboard + mouse player
+# SquadMember
 extends KinematicBody2D
 
-# Actions
-export var speed = 3 # player speed
-export var life = 200 # player life
-var isShooting = false
-var shootAngle = 0
-var last_angle = Vector2(0,0)
-var mousePos = Vector2(0,0)
+# Atributes
+export var speed = 100 # player speed
+export var life = 100 # player life
+export var stimpacks = 1
+
+# State
 var currentLife = life
 var is_dead = false
+var isMoving = false
+var new_pos
+var isHealing = false
+var isUsingPowerup = false
+var isAiming = false
+var shootAngle = PI/2
+var current_stimpacks = 0
+# Resources
 var weapon_1 = preload("res://Weapons/weapon_1.tscn")
+onready var action_menu = get_node("ActionMenu")
 #onready var sound = get_node("/root/menu_music/SamplePlayer")
 
-
-# Keyboard Movement actions
-var move_actions = { "K_MOVE_LEFT":Vector2(-1,0), "K_MOVE_RIGHT":Vector2(1,0), "K_MOVE_UP":Vector2(0,-1), "K_MOVE_DOWN":Vector2(0,1) }
-
-var dir = Vector2(0,0)
-var dir_slide = Vector2(0,0)
-
 func _ready():
-	set_process(true)
-	set_process_input(true)
-#	maze_tilemap = get_node("/root/TestLevel/Maze/Navigation2D/TileMap")
-	
-func _process(delta):	
-	
+	set_process(false)
+
+
+func _process(delta):
 	# Movement
-	#make character slide nicely through the world	
-	var slides_attemps = 5
-	if(is_colliding() and slides_attemps > 0):
-		dir = get_collision_normal().slide(dir)
-		dir = move(dir.normalized()*speed*delta*0.5)
-		slides_attemps -= 1
-	else:
-		dir = Vector2(0,0)
-	
-	for ac in move_actions:
-		if Input.is_action_pressed(ac):
-			dir += move_actions[ac]
-			
-	move(dir.normalized() * speed * delta)
-	if dir == Vector2(0,0):
-		var rot = Vector2(0,0).angle_to_point(last_angle)-3.14159
-		set_rot(rot )
-	else:
-		last_angle = dir
-		var rot = Vector2(0,0).angle_to_point(last_angle)-3.14159
-		set_rot(rot )
-	
-
-	# Shooting
-	if Input.is_action_pressed("M_SHOOT"):
-		look_at(mousePos)
-		last_angle = mousePos
-		shootAngle = get_pos().angle_to_point(mousePos)
-
-		shootAngle = - (shootAngle - 3.14159/2) + 3.141519
-		isShooting = true	
-		get_node("Weapon").fire_weapon(shootAngle)
+	var dir = (new_pos-get_pos()).normalized()*speed
+	move(dir) # add delta on tilemap navigation
+	var rot = Vector2(0,0).angle_to_point(dir)-3.14159
+	set_rot(rot)
+	if new_pos.distance_squared_to(get_pos()) <10:
+		get_node("ActionMenu").set_rot(-rot)
+		shootAngle = -(rot - PI/2)
+		set_process(false)
+		get_node("Timer").start()
 		
-	else:
-		isShooting = false
+
+func _unhandled_input(event):
+	# Motion
+	if event.type == InputEvent.MOUSE_BUTTON \
+    and event.button_index == BUTTON_LEFT \
+    and event.pressed and isMoving:
+		new_pos = get_global_mouse_pos()
+		set_process(true)
+		set_process_unhandled_input(false) 
+		isMoving = false
 	
-func _input(ev):
-		# Mouse rotation		
-	if (ev.type==InputEvent.MOUSE_MOTION):
-		mousePos =  get_global_mouse_pos()
+	# Aiming
+	if event.type == InputEvent.MOUSE_MOTION \
+    and isAiming:
+		var mousePos = get_global_mouse_pos() 
+		shootAngle = get_pos().angle_to_point(mousePos)
+		shootAngle = - (shootAngle - PI/2) + PI
+		look_at(mousePos)
+		get_node("ActionMenu").set_rot(shootAngle - PI/2)
+
+	if event.type == InputEvent.MOUSE_BUTTON \
+    and event.button_index == BUTTON_LEFT \
+    and event.pressed and isAiming:
+		isAiming = false
+		get_node("Timer").start()
+		set_process_unhandled_input(false) 
 	
+
+func _input_event(viewport, event, shape_idx):
+    if event.type == InputEvent.MOUSE_BUTTON \
+    and event.button_index == BUTTON_LEFT \
+    and event.pressed and not isMoving and not isAiming:
+        action_menu.show()
+
 func add_life(lifeValue):
 	if is_dead:
 		return
@@ -84,7 +86,50 @@ func add_life(lifeValue):
 		#sound.play("Laser_05", true)
 		get_node("Sprite").hide()
 		is_dead = true
+
+#################### Action MENU ##################33
+
+func _on_move_input_event( viewport, event, shape_idx ):
+	if event.type == InputEvent.MOUSE_BUTTON \
+    and event.button_index == BUTTON_LEFT \
+    and event.pressed:
+		print("Move")
+		isMoving = true
+		action_menu.hide()
+		set_process_unhandled_input(true) 
+		get_node("Timer").stop()
+
+func _on_aim_input_event( viewport, event, shape_idx ):
+	if event.type == InputEvent.MOUSE_BUTTON \
+    and event.button_index == BUTTON_LEFT \
+    and event.pressed:
+		print("Aim")
+		action_menu.hide()
+		set_process_unhandled_input(true) 
+		isAiming = true
+		get_node("Timer").stop()
+
+func _on_heal_input_event( viewport, event, shape_idx ):
+	if event.type == InputEvent.MOUSE_BUTTON \
+    and event.button_index == BUTTON_LEFT \
+    and event.pressed:
+		print("Heal")
+		action_menu.hide()
+		if current_stimpacks < stimpacks:
+			currentLife += int(life/3)
+			currentLife = min(currentLife, life)
+			current_stimpacks += 1
+		if current_stimpacks == stimpacks:
+			get_node("ActionMenu/Heal").hide()
 		
+
+func _on_powerup_input_event( viewport, event, shape_idx ):
+	if event.type == InputEvent.MOUSE_BUTTON \
+    and event.button_index == BUTTON_LEFT \
+    and event.pressed:
+		print("Powerup")
+		action_menu.hide() 
+
 
 func draw_circle_arc( center, radius, angle_from, angle_to, color ):
     var nb_points = 32
@@ -98,4 +143,7 @@ func draw_circle_arc( center, radius, angle_from, angle_to, color ):
     for indexPoint in range(nb_points):
         draw_line(points_arc[indexPoint], points_arc[indexPoint+1], color, 4)
 
-	
+
+func _on_shoot_timeout():
+	get_node("Weapon").fire_weapon(shootAngle)
+
