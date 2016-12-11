@@ -1,13 +1,104 @@
-[gd_scene load_steps=2 format=1]
+[gd_scene load_steps=5 format=1]
 
-[ext_resource path="res://Player/player_1.tscn" type="PackedScene" id=1]
+[ext_resource path="res://Levels/level.gd" type="Script" id=1]
+[ext_resource path="res://Levels/tileset.tres" type="TileSet" id=2]
+[ext_resource path="res://Player/player_1.tscn" type="PackedScene" id=3]
+[ext_resource path="res://Levels/gui.gd" type="Script" id=4]
 
-[node name="room" type="Node"]
+[node name="level" type="Node"]
 
-[node name="SquadMember" parent="." instance=ExtResource( 1 )]
+script/script = ExtResource( 1 )
+max_AP = 10
+
+[node name="room" type="Navigation2D" parent="."]
+
+[node name="TileMap" type="TileMap" parent="room"]
+
+mode = 0
+tile_set = ExtResource( 2 )
+cell/size = Vector2( 64, 64 )
+cell/quadrant_size = 16
+cell/custom_transform = Matrix32( 1, 0, 0, 1, 0, 0 )
+cell/half_offset = 2
+cell/tile_origin = 0
+cell/y_sort = false
+collision/use_kinematic = false
+collision/friction = 1.0
+collision/bounce = 0.0
+collision/layers = 1
+collision/mask = 1
+occluder/light_mask = 1
+tile_data = IntArray( 0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 8, 0, 9, 0, 10, 0, 11, 0, 12, 0, 131071, 0, 65536, 0, 65537, 0, 65538, 0, 65539, 0, 65540, 0, 65541, 0, 65542, 0, 65543, 0, 65544, 0, 65545, 0, 65546, 0, 65547, 0, 65548, 0, 196607, 0, 131072, 0, 131073, 0, 131074, 0, 131075, 1, 131076, 0, 131077, 0, 131078, 0, 131079, 0, 131080, 0, 131081, 0, 131082, 0, 131083, 0, 131084, 0, 262143, 0, 196608, 0, 196609, 0, 196610, 0, 196611, 1, 196612, 0, 196613, 0, 196614, 0, 196615, 0, 196616, 0, 196617, 0, 196618, 0, 196619, 0, 196620, 0, 262144, 0, 262145, 0, 262146, 0, 262147, 1, 262148, 0, 262149, 0, 262150, 0, 262151, 0, 262152, 0, 262153, 0, 262154, 0, 262155, 0, 262156, 0, 327680, 0, 327681, 0, 327682, 0, 327683, 1, 327684, 0, 327685, 0, 327686, 0, 327687, 0, 327688, 0, 327689, 0, 327690, 0, 327691, 0, 327692, 0, 393216, 0, 393217, 0, 393218, 0, 393219, 1, 393220, 0, 393221, 0, 393222, 0, 393223, 0, 393224, 0, 393225, 0, 393226, 0, 393227, 0, 393228, 0, 458752, 0, 458753, 0, 458754, 0, 458755, 0, 458756, 0, 458757, 0, 458758, 0, 458759, 0, 458760, 0, 458761, 0, 458762, 0, 458763, 0, 458764, 0, 524288, 0, 524289, 0, 524290, 0, 524291, 0, 524292, 0, 524293, 0, 524294, 0, 524295, 0, 524296, 0, 524297, 0, 524298, 0, 524299, 0, 524300, 0, 589824, 0, 589825, 0, 589826, 0, 589827, 0, 589828, 0, 589829, 0, 589830, 0, 589831, 0, 589832, 0, 589833, 0, 589834, 0, 589835, 0, 589836, 0, 655363, 0, 655364, 0, 655365, 0 )
+
+[node name="SquadMember" parent="." instance=ExtResource( 3 )]
 
 transform/pos = Vector2( 447.302, 254.25 )
-transform/scale = Vector2( 0.2, 0.2 )
-stimpacks = 1
+transform/scale = Vector2( 0.1, 0.1 )
+
+[node name="AP Timer" type="Timer" parent="."]
+
+process_mode = 1
+wait_time = 5.0
+one_shot = false
+autostart = true
+
+[node name="Countdown" type="Timer" parent="."]
+
+process_mode = 1
+wait_time = 30.0
+one_shot = false
+autostart = true
+
+[node name="GUI" type="Node2D" parent="."]
+
+script/script = ExtResource( 4 )
+
+[node name="AP" type="Label" parent="GUI"]
+
+focus/ignore_mouse = true
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 0
+margin/left = 0.0
+margin/top = 0.0
+margin/right = 40.0
+margin/bottom = 14.0
+text = "Action Points:"
+percent_visible = 1.0
+lines_skipped = 0
+max_lines_visible = -1
+
+[node name="Timer" type="Label" parent="GUI"]
+
+focus/ignore_mouse = true
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 0
+margin/left = 600.0
+margin/top = 0.0
+margin/right = 689.0
+margin/bottom = 14.0
+text = "Upload:  0%"
+percent_visible = 1.0
+lines_skipped = 0
+max_lines_visible = -1
+
+[node name="Timer" type="Timer" parent="GUI/Timer"]
+
+process_mode = 1
+wait_time = 5.0
+one_shot = false
+autostart = true
+
+[node name="SquadMember 2" parent="." instance=ExtResource( 3 )]
+
+transform/pos = Vector2( 75.8753, 118.44 )
+transform/scale = Vector2( 0.1, 0.1 )
+
+[connection signal="timeout" from="AP Timer" to="." method="_on_AP_Timer_timeout"]
+
+[connection signal="timeout" from="Countdown" to="." method="_on_Countdown_timeout"]
+
+[connection signal="timeout" from="GUI/Timer/Timer" to="GUI" method="_on_Timer_timeout"]
 
 
