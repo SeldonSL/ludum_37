@@ -36,7 +36,7 @@ collision/margin = 0.08
 script/script = ExtResource( 1 )
 __meta__ = { "__editor_plugin_screen__":"Script" }
 speed = 3
-life = 200
+life = 5
 stimpacks = 1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
@@ -61,7 +61,7 @@ config/explosiveness = 0.2
 config/texture = ExtResource( 3 )
 params/direction = 0.0
 params/spread = 180.0
-params/linear_velocity = 100.0
+params/linear_velocity = 10.0
 params/spin_velocity = 0.0
 params/orbit_velocity = 0.0
 params/gravity_direction = 0.0
@@ -70,8 +70,8 @@ params/radial_accel = 10.0
 params/tangential_accel = 0.0
 params/damping = 0.0
 params/initial_angle = 0.0
-params/initial_size = 2.0
-params/final_size = 3.0
+params/initial_size = 0.3
+params/final_size = 1.0
 params/hue_variation = 0.0
 params/anim_speed_scale = 1.0
 params/anim_initial_pos = 0.0
@@ -178,9 +178,16 @@ _update_shape_index = 0
 [node name="Timer" type="Timer" parent="."]
 
 process_mode = 1
-wait_time = 1.0
+wait_time = 0.3
 one_shot = false
 autostart = true
+
+[node name="death" type="Timer" parent="."]
+
+process_mode = 1
+wait_time = 1.0
+one_shot = false
+autostart = false
 
 [connection signal="input_event" from="ActionMenu/Move/Area2D" to="." method="_on_move_input_event"]
 
@@ -191,5 +198,7 @@ autostart = true
 [connection signal="input_event" from="ActionMenu/Powerup/Area2D" to="." method="_on_powerup_input_event"]
 
 [connection signal="timeout" from="Timer" to="." method="_on_shoot_timeout"]
+
+[connection signal="timeout" from="death" to="." method="_on_death_timeout"]
 
 

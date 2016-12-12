@@ -2,7 +2,7 @@ extends Node
 
 export var angle = 30
 export var distance = 100
-var bullet = preload("res://Weapons/bullet_1.tscn")
+var bullet = preload("res://Weapons/bullet_enemy.tscn")
 #onready var sound = get_node("/root/menu_music/SamplePlayer")
 
 func _ready():
@@ -11,7 +11,7 @@ func _ready():
 func fire_weapon(firing_angle):
 
 	# check if enemy is within range
-	var enemies = get_tree().get_nodes_in_group("enemies")
+	var enemies = get_tree().get_nodes_in_group("squad")
 	for enemy in enemies:
 		var d = get_parent().get_global_pos().distance_to(enemy.get_global_pos())
 		var alfa = - get_parent().get_global_pos().angle_to_point(enemy.get_global_pos()) + 3*PI / 2

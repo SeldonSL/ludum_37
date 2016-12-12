@@ -1,0 +1,17 @@
+[gd_scene load_steps=2 format=1]
+
+[ext_resource path="res://Player/player_1.tscn" type="PackedScene" id=1]
+
+[node name="SquadShield" instance=ExtResource( 1 )]
+
+[connection signal="input_event" from="ActionMenu/Move/Area2D" to="." method="_on_move_input_event"]
+
+[connection signal="input_event" from="ActionMenu/Aim/Area2D" to="." method="_on_aim_input_event"]
+
+[connection signal="input_event" from="ActionMenu/Heal/Area2D" to="." method="_on_heal_input_event"]
+
+[connection signal="input_event" from="ActionMenu/Powerup/Area2D" to="." method="_on_powerup_input_event"]
+
+[connection signal="timeout" from="Timer" to="." method="_on_shoot_timeout"]
+
+

@@ -23,7 +23,7 @@ onready var action_menu = get_node("ActionMenu")
 #onready var sound = get_node("/root/menu_music/SamplePlayer")
 
 func _ready():
-	set_process(false)
+	add_to_group("squad")
 
 func _process(delta):
 	# Movement
@@ -42,8 +42,10 @@ func _process(delta):
 			var atpos = path[path.size()-1]			
 			shootAngle = get_pos().angle_to_point(atpos) + PI
 			set_rot(shootAngle)
-			set_pos(atpos)
 			get_node("ActionMenu").set_rot(-shootAngle)
+			shootAngle = -(shootAngle - PI/2)
+			set_pos(atpos)
+
 			if (path.size()<2):
 				path=[]
 				#get_node("ActionMenu").set_rot(-shootAngle)
@@ -51,7 +53,6 @@ func _process(delta):
 				get_node("Timer").start()
 
 func _unhandled_input(event):
-	print ("KK")
 	# Motion
 	if event.type == InputEvent.MOUSE_BUTTON \
     and event.button_index == BUTTON_LEFT \
@@ -60,12 +61,13 @@ func _unhandled_input(event):
 		set_process(true)
 		set_process_unhandled_input(false) 
 		isMoving = false
+		update()
 
 	if event.type == InputEvent.MOUSE_MOTION \
     and isMoving:
 		path = Array(get_parent().get_node("room").get_simple_path(get_pos(),get_global_mouse_pos(), false))
 		path.invert()
-		#update()
+		update()
 	
 	# Aiming
 	if event.type == InputEvent.MOUSE_MOTION \
@@ -74,6 +76,7 @@ func _unhandled_input(event):
 		shootAngle = get_pos().angle_to_point(mousePos)
 		shootAngle = - (shootAngle - PI/2) + PI
 		look_at(mousePos)
+		update()
 		get_node("ActionMenu").set_rot(shootAngle - PI/2)
 
 	if event.type == InputEvent.MOUSE_BUTTON \
@@ -82,6 +85,7 @@ func _unhandled_input(event):
 		isAiming = false
 		get_node("Timer").start()
 		set_process_unhandled_input(false) 
+		update()
 	
 
 
@@ -100,6 +104,7 @@ func add_life(lifeValue):
 		#sound.play("Laser_05", true)
 		get_node("Sprite").hide()
 		is_dead = true
+		get_node("death").start()
 
 #################### Action MENU ##################33
 func _input_event(viewport, event, shape_idx):
@@ -111,7 +116,7 @@ func _input_event(viewport, event, shape_idx):
 		var ap =  get_parent().current_AP
 		if ap < 3:
 			get_node("ActionMenu/Powerup").hide()
-		if ap < 2:
+		if ap < 2 or current_stimpacks >= stimpacks:
 			get_node("ActionMenu/Heal").hide()
 		if ap < 1:
 			get_node("ActionMenu/Move").hide()		
@@ -145,15 +150,12 @@ func _on_heal_input_event( viewport, event, shape_idx ):
     and event.pressed:
 		print("Heal")
 		action_menu.hide()
-		if current_stimpacks < stimpacks:
-			currentLife += int(life/3)
-			currentLife = min(currentLife, life)
-			current_stimpacks += 1
-			get_parent().current_AP -= 2
-			get_node("../GUI/AP").set_text("Action Points:  " + str(get_parent().current_AP))
-		if current_stimpacks == stimpacks:
-			get_node("ActionMenu/Heal").hide()
-		
+		currentLife += int(life/3)
+		currentLife = min(currentLife, life)
+		current_stimpacks += 1
+		get_parent().current_AP -= 2
+		get_node("../GUI/AP").set_text("Action Points:  " + str(get_parent().current_AP))
+
 
 func _on_powerup_input_event( viewport, event, shape_idx ):
 	if event.type == InputEvent.MOUSE_BUTTON \
@@ -169,6 +171,8 @@ func _on_powerup_input_event( viewport, event, shape_idx ):
 
 func _on_shoot_timeout():
 	get_node("Weapon").fire_weapon(shootAngle)
+	
+############   DRAWING  ################
 
 func draw_circle_arc( center, radius, angle_from, angle_to, color ):
     var nb_points = 32
@@ -182,11 +186,32 @@ func draw_circle_arc( center, radius, angle_from, angle_to, color ):
     for indexPoint in range(nb_points):
         draw_line(points_arc[indexPoint], points_arc[indexPoint+1], color, 4)
 
+func draw_circle_arc_poly( center, radius, angle_from, angle_to, color ):
+    var nb_points = 32
+    var points_arc = Vector2Array()
+    points_arc.push_back(center)
+    var colors = ColorArray([color])
+
+    for i in range(nb_points+1):
+        var angle_point = angle_from + i*(angle_to-angle_from)/nb_points - 90
+        points_arc.push_back(center + Vector2( cos( deg2rad(angle_point) ), sin( deg2rad(angle_point) ) ) * radius)
+    draw_polygon(points_arc, colors)
+
 func _draw():
 	if isMoving:
 		var p1 = Vector2(0,0)
 		for i in range(0,path.size()):
 			var pt = path[path.size() - i -1 ] - get_global_pos()
-			print (str(p1) + " "+ str(pt))
-			draw_line(p1, pt, Color(1,0,0), 3)
+			draw_line(p1.rotated(-get_rot())/get_scale().x, pt.rotated(-get_rot())/get_scale().x, Color(1,0,0), 3)
 			p1 = pt
+				
+	elif isAiming:
+		var w_angle = get_node("Weapon").angle
+		var w_dist  = get_node("Weapon").distance
+		draw_circle_arc_poly(Vector2(0,0), w_dist /get_scale().x, -w_angle + 180 , w_angle + 180, Color(1,0,0, 0.5))
+
+func _on_death_timeout():
+	var squad = get_tree().get_nodes_in_group("squad")
+	if squad.size() == 1:
+		print("Game OVER :(")
+	queue_free()
