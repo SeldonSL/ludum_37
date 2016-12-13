@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=1]
+[gd_scene load_steps=14 format=1]
 
 [ext_resource path="res://Player/player_1.gd" type="Script" id=1]
 [ext_resource path="res://Player/nave.png" type="Texture" id=2]
@@ -8,11 +8,12 @@
 [ext_resource path="res://Player/120_-_target-512.png" type="Texture" id=6]
 [ext_resource path="res://Player/heal.png" type="Texture" id=7]
 [ext_resource path="res://Player/star-xxl.png" type="Texture" id=8]
+[ext_resource path="res://Xolonium-Bold.otf" type="DynamicFontData" id=9]
 
 [sub_resource type="RectangleShape2D" id=1]
 
 custom_solver_bias = 0.0
-extents = Vector2( 200, 200 )
+extents = Vector2( 350, 350 )
 
 [sub_resource type="ColorRamp" id=2]
 
@@ -23,6 +24,13 @@ colors = ColorArray( 0.870588, 0.807843, 0.611765, 1, 0.180392, 0.47451, 0.72941
 
 custom_solver_bias = 0.0
 extents = Vector2( 100, 100 )
+
+[sub_resource type="DynamicFont" id=4]
+
+font/size = 128
+font/use_mipmaps = false
+font/use_filter = false
+font/font = ExtResource( 9 )
 
 [node name="SquadMember" type="KinematicBody2D"]
 
@@ -36,7 +44,7 @@ collision/margin = 0.08
 script/script = ExtResource( 1 )
 __meta__ = { "__editor_plugin_screen__":"Script" }
 speed = 3
-life = 5
+life = 50
 stimpacks = 1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
@@ -48,6 +56,7 @@ _update_shape_index = 0
 [node name="Sprite" type="Sprite" parent="."]
 
 transform/rot = -90.0
+transform/scale = Vector2( 4, 4 )
 texture = ExtResource( 2 )
 
 [node name="Particles2D" type="Particles2D" parent="."]
@@ -77,23 +86,52 @@ params/anim_speed_scale = 1.0
 params/anim_initial_pos = 0.0
 color/color_ramp = SubResource( 2 )
 
+[node name="ParticleGranade" type="Particles2D" parent="."]
+
+config/amount = 64
+config/lifetime = 2.0
+config/preprocess = 0.2
+config/emitting = false
+config/local_space = false
+config/explosiveness = 0.2
+config/texture = ExtResource( 3 )
+params/direction = 0.0
+params/spread = 180.0
+params/linear_velocity = 10.0
+params/spin_velocity = 0.0
+params/orbit_velocity = 0.0
+params/gravity_direction = 0.0
+params/gravity_strength = 0.0
+params/radial_accel = 10.0
+params/tangential_accel = 0.0
+params/damping = 0.0
+params/initial_angle = 0.0
+params/initial_size = 1.0
+params/final_size = 3.0
+params/hue_variation = 0.0
+params/anim_speed_scale = 1.0
+params/anim_initial_pos = 0.0
+color/color_ramp = SubResource( 2 )
+
 [node name="Weapon" parent="." instance=ExtResource( 4 )]
 
 [node name="ActionMenu" type="Node2D" parent="."]
 
+editor/display_folded = true
 visibility/visible = false
+transform/scale = Vector2( 1.3, 1.3 )
 
 [node name="Move" type="Sprite" parent="ActionMenu"]
 
-editor/display_folded = true
 transform/pos = Vector2( -300, -300 )
+transform/scale = Vector2( 8, 8 )
 texture = ExtResource( 5 )
 
 [node name="Area2D" type="Area2D" parent="ActionMenu/Move"]
 
 input/pickable = true
 shapes/0/shape = SubResource( 3 )
-shapes/0/transform = Matrix32( 1, 0, 0, 1, 0, 0 )
+shapes/0/transform = Matrix32( 0.3, 0, 0, 0.3, 0, 0 )
 shapes/0/trigger = false
 gravity_vec = Vector2( 0, 1 )
 gravity = 98.0
@@ -102,21 +140,22 @@ angular_damp = 1.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ActionMenu/Move/Area2D"]
 
+transform/scale = Vector2( 0.3, 0.3 )
 shape = SubResource( 3 )
 trigger = false
 _update_shape_index = 0
 
 [node name="Aim" type="Sprite" parent="ActionMenu"]
 
-editor/display_folded = true
 transform/pos = Vector2( 300, -300 )
+transform/scale = Vector2( 8, 8 )
 texture = ExtResource( 6 )
 
 [node name="Area2D" type="Area2D" parent="ActionMenu/Aim"]
 
 input/pickable = true
 shapes/0/shape = SubResource( 3 )
-shapes/0/transform = Matrix32( 1, 0, 0, 1, 0, 0 )
+shapes/0/transform = Matrix32( 0.3, 0, 0, 0.3, 0, 0 )
 shapes/0/trigger = false
 gravity_vec = Vector2( 0, 1 )
 gravity = 98.0
@@ -125,21 +164,22 @@ angular_damp = 1.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ActionMenu/Aim/Area2D"]
 
+transform/scale = Vector2( 0.3, 0.3 )
 shape = SubResource( 3 )
 trigger = false
 _update_shape_index = 0
 
 [node name="Heal" type="Sprite" parent="ActionMenu"]
 
-editor/display_folded = true
 transform/pos = Vector2( -300, 300 )
+transform/scale = Vector2( 8, 8 )
 texture = ExtResource( 7 )
 
 [node name="Area2D" type="Area2D" parent="ActionMenu/Heal"]
 
 input/pickable = true
 shapes/0/shape = SubResource( 3 )
-shapes/0/transform = Matrix32( 1, 0, 0, 1, 0, 0 )
+shapes/0/transform = Matrix32( 0.3, 0, 0, 0.3, 0, 0 )
 shapes/0/trigger = false
 gravity_vec = Vector2( 0, 1 )
 gravity = 98.0
@@ -148,21 +188,22 @@ angular_damp = 1.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ActionMenu/Heal/Area2D"]
 
+transform/scale = Vector2( 0.3, 0.3 )
 shape = SubResource( 3 )
 trigger = false
 _update_shape_index = 0
 
 [node name="Powerup" type="Sprite" parent="ActionMenu"]
 
-editor/display_folded = true
 transform/pos = Vector2( 300, 300 )
+transform/scale = Vector2( 8, 8 )
 texture = ExtResource( 8 )
 
 [node name="Area2D" type="Area2D" parent="ActionMenu/Powerup"]
 
 input/pickable = true
 shapes/0/shape = SubResource( 3 )
-shapes/0/transform = Matrix32( 1, 0, 0, 1, 0, 0 )
+shapes/0/transform = Matrix32( 0.3, 0, 0, 0.3, 0, 0 )
 shapes/0/trigger = false
 gravity_vec = Vector2( 0, 1 )
 gravity = 98.0
@@ -171,14 +212,31 @@ angular_damp = 1.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ActionMenu/Powerup/Area2D"]
 
+transform/scale = Vector2( 0.3, 0.3 )
 shape = SubResource( 3 )
 trigger = false
 _update_shape_index = 0
 
+[node name="Label" type="Label" parent="ActionMenu"]
+
+focus/ignore_mouse = true
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 0
+margin/left = -433.0
+margin/top = 477.0
+margin/right = 509.0
+margin/bottom = 618.0
+custom_fonts/font = SubResource( 4 )
+text = "Life = 100%"
+percent_visible = 1.0
+lines_skipped = 0
+max_lines_visible = -1
+
 [node name="Timer" type="Timer" parent="."]
 
 process_mode = 1
-wait_time = 0.3
+wait_time = 0.1
 one_shot = false
 autostart = true
 

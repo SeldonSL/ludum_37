@@ -10,11 +10,12 @@ var currentLife = life
 var is_dead = false
 var shootAngle = PI/2
 var target = null
+var target_wr = null
 var path = []
 # Resources
 var weapon_1 = preload("res://Weapons/weapon_1.tscn")
 
-#onready var sound = get_node("/root/menu_music/SamplePlayer")
+onready var sound = get_node("/root/menu_music/SamplePlayer")
 
 func _ready():
 	add_to_group("enemies")
@@ -47,7 +48,7 @@ func _process(delta):
 				get_node("Timer").start()
 				get_node("AI").start()
 				print (target)
-				if target:
+				if (target_wr.get_ref()):
 					shootAngle = - get_global_pos().angle_to_point(target.get_global_pos()) + 3 * PI / 2
 
 				
@@ -62,11 +63,12 @@ func add_life(lifeValue):
 	if currentLife <= 0:
 		get_node("Particles2D").set_emitting(true)
 		set_process(false)
-
-		#sound.play("Laser_05", true)
+		get_node("Timer").stop()
+		
 		get_node("Sprite").hide()
 		is_dead = true
 		get_node("death").start()
+		sound.play("Explosion11", true)
 
 func _on_shoot_timeout():
 
@@ -75,9 +77,10 @@ func _on_shoot_timeout():
 func _on_AI_timeout():
 	var choice = randi() % 10
 	var angle_off = randi() % 360
-	var offset = Vector2(200 * cos(deg2rad(angle_off)), 200 * sin(deg2rad(angle_off)))
+	var offset = Vector2(150 * cos(deg2rad(angle_off)), 150 * sin(deg2rad(angle_off)))
 	var squad = get_tree().get_nodes_in_group("squad")
 	var pos
+	
 	if choice >= 6:
 		target = get_tree().get_root().get_node("level/data_nexus")
 		pos = get_tree().get_root().get_node("level/data_nexus").get_pos()
@@ -85,7 +88,8 @@ func _on_AI_timeout():
 		target = squad[floor(choice/6 * squad.size())]
 		pos = target.get_pos()
 	
-	path = Array(get_tree().get_root().get_node("level/room").get_simple_path(get_pos(),pos + offset, false))
+	target_wr = weakref(target);
+	path = Array(get_tree().get_root().get_node("level/room").get_simple_path(get_pos(),pos + offset, true))
 	path.invert()
 	set_process(true)
 	get_node("Timer").stop()
@@ -95,3 +99,5 @@ func _on_AI_timeout():
 
 func _on_death_timeout():
 	queue_free()
+	
+

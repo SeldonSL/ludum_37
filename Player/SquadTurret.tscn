@@ -1,21 +1,42 @@
-[gd_scene load_steps=2 format=1]
+[gd_scene load_steps=4 format=1]
 
 [ext_resource path="res://Player/player_1.tscn" type="PackedScene" id=1]
+[ext_resource path="res://Weapons/weapon_1.tscn" type="PackedScene" id=2]
+[ext_resource path="res://Player/turret.png" type="Texture" id=3]
 
 [node name="SquadTurret" instance=ExtResource( 1 )]
 
-[node name="Sprite" parent="."]
+[node name="Turret" type="Node2D" parent="."]
 
-modulate = Color( 1, 0.0273438, 0.0957336, 1 )
+visibility/visible = false
 
-[connection signal="input_event" from="ActionMenu/Move/Area2D" to="." method="_on_move_input_event"]
+[node name="weapon" parent="Turret" instance=ExtResource( 2 )]
 
-[connection signal="input_event" from="ActionMenu/Aim/Area2D" to="." method="_on_aim_input_event"]
+angle = 270
+distance = 250
 
-[connection signal="input_event" from="ActionMenu/Heal/Area2D" to="." method="_on_heal_input_event"]
+[node name="Timer" type="Timer" parent="Turret"]
 
-[connection signal="input_event" from="ActionMenu/Powerup/Area2D" to="." method="_on_powerup_input_event"]
+process_mode = 1
+wait_time = 0.2
+one_shot = false
+autostart = false
 
-[connection signal="timeout" from="Timer" to="." method="_on_shoot_timeout"]
+[node name="Timer_turret_down" type="Timer" parent="Turret"]
+
+process_mode = 1
+wait_time = 10.0
+one_shot = false
+autostart = false
+
+[node name="Sprite" type="Sprite" parent="Turret"]
+
+transform/scale = Vector2( 5, 5 )
+texture = ExtResource( 3 )
+
+[connection signal="timeout" from="Turret/Timer" to="." method="_on_Timer_turret_timeout"]
+
+[connection signal="timeout" from="Turret/Timer_turret_down" to="." method="_on_Timer_turret_down_timeout"]
 
 
+[editable path="Turret/weapon"]

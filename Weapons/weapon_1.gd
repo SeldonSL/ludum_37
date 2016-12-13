@@ -3,7 +3,7 @@ extends Node
 export var angle = 30
 export var distance = 100
 var bullet = preload("res://Weapons/bullet_1.tscn")
-#onready var sound = get_node("/root/menu_music/SamplePlayer")
+onready var sound = get_node("/root/menu_music/SamplePlayer")
 
 func _ready():
 	pass
@@ -23,10 +23,9 @@ func fire_weapon(firing_angle):
 			get_tree().get_root().add_child(b)
 			
 			# set initial angle
-			var dir_angle = Vector2(45 * cos(3*PI/2-alfa), 45 * sin(3*PI/2-alfa)) 
-			b.set_pos(get_parent().get_pos())# + dir_angle)
+			b.set_pos(get_parent().get_pos())#+ dir_angle)
 			b.set_angle(alfa)
-			
+			sound.play("Laser_Shoot2", true)
 			break
 			
 		elif alfa >= 2 * PI and d <= distance and (alfa <= firing_angle + 2 * PI + deg2rad(angle)) and (alfa >= firing_angle + 2* PI - deg2rad(angle)): # fire (first enemy encountered)	
@@ -36,14 +35,13 @@ func fire_weapon(firing_angle):
 			get_tree().get_root().add_child(b)
 			
 			# set initial angle
-			var dir_angle = Vector2(0,0) #Vector2(45 * cos(3*PI/2-alfa), 45 * sin(3*PI/2-alfa)) 
-			b.set_pos(get_parent().get_pos())#get_parent().get_pos())# + dir_angle)
+			b.set_pos(get_parent().get_pos())# + dir_angle)
 			b.set_angle(alfa)
-			
+
+			sound.play("Laser_Shoot2", true)
 			break
 			
-			# play sound
-			#sound.play("Laser_09", true)
+
 		
 
 

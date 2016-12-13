@@ -38,14 +38,7 @@ func _on_Bullet_area_enter( area ):
 
 
 func _on_Bullet_body_enter( body ):
-
-	#var tile_pos = tilemap.world_to_map(get_pos()*1.0/tilemap.get_scale().x  +Vector2(cos(angle) * 50, sin(angle) *50))
-	#tile_pos = Vector2(floor(tile_pos.x), floor(tile_pos.y))
 	
-	#if body.get_name().find("Tilemap"):
-#		var maze = get_node("/root/TestLevel/Maze")
-		#maze.add_life(-Damage, tile_pos) 
-
 	if (body.has_method("add_life")):
 		body.add_life(-Damage)
 		

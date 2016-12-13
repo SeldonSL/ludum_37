@@ -19,6 +19,8 @@ func _on_AP_Timer_timeout():
 
 func _on_Countdown_timeout():
 	print ("Level complete!")
+	get_node("win").show()
+	get_tree().set_pause(true)
 	pass # replace with function body
 
 
@@ -28,7 +30,11 @@ func _on_enemy_spawn_timeout():
 		var e = enemy.instance()
 		e.set_scale(Vector2(0.3,0.3))
 		var offset = randi()% 60 - 30
-		e.set_pos(Vector2(-100, -100))
+		var pos = randi() % 100
+		if pos <= 50:			
+			e.set_pos(get_node("enemy_pos1").get_pos() + Vector2(pos/2, pos/2))
+		else:
+			e.set_pos(get_node("enemy_pos2").get_pos() + Vector2(pos/2, pos/2))
 		add_child(e)
 		
 

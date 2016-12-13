@@ -4,7 +4,7 @@ extends KinematicBody2D
 # Atributes
 export var speed = 100 # player speed
 export var life = 100 # player life
-export var stimpacks = 1
+export var stimpacks = 1000
 
 # State
 var currentLife = life
@@ -17,13 +17,20 @@ var isAiming = false
 var shootAngle = PI/2
 var current_stimpacks = 0
 var path = []
+var hasShield = false
+var shield_damage = 10
+var hasGranade = false
+var granade_pos
+var granade_radius = 1000
+var hasTurret = false
+var turret_pos
 # Resources
 var weapon_1 = preload("res://Weapons/weapon_1.tscn")
 onready var action_menu = get_node("ActionMenu")
-#onready var sound = get_node("/root/menu_music/SamplePlayer")
+onready var sound = get_node("/root/menu_music/SamplePlayer")
 
 func _ready():
-	add_to_group("squad")
+	add_to_group("squad")	
 
 func _process(delta):
 	# Movement
@@ -65,7 +72,7 @@ func _unhandled_input(event):
 
 	if event.type == InputEvent.MOUSE_MOTION \
     and isMoving:
-		path = Array(get_parent().get_node("room").get_simple_path(get_pos(),get_global_mouse_pos(), false))
+		path = Array(get_parent().get_node("room").get_simple_path(get_pos(),get_global_mouse_pos(), true))
 		path.invert()
 		update()
 	
@@ -87,21 +94,69 @@ func _unhandled_input(event):
 		set_process_unhandled_input(false) 
 		update()
 	
+	# Granade
+	if event.type == InputEvent.MOUSE_MOTION \
+    and hasGranade:
+		var mousePos = get_global_mouse_pos() 
+		granade_pos = mousePos
+		look_at(mousePos)
+		update()
+		get_node("ActionMenu").set_rot(shootAngle - PI/2)
 
+	if event.type == InputEvent.MOUSE_BUTTON \
+    and event.button_index == BUTTON_LEFT \
+    and event.pressed and hasGranade:
+		hasGranade = false
+		get_node("Timer").start()
+		granade_pos = get_global_mouse_pos()
+		shoot_granade(granade_pos)
+		set_process_unhandled_input(false) 
+		update()
+	
+	# Turret
+	if event.type == InputEvent.MOUSE_MOTION \
+    and hasTurret:
+		var mousePos = get_global_mouse_pos() 
+		turret_pos = mousePos
+		look_at(mousePos)
+		update()
+		get_node("ActionMenu").set_rot(shootAngle - PI/2)
+
+	if event.type == InputEvent.MOUSE_BUTTON \
+    and event.button_index == BUTTON_LEFT \
+    and event.pressed and hasTurret:
+		hasTurret = false
+		get_node("Timer").start()
+		turret_pos = get_global_mouse_pos()
+		get_node("Turret").show()
+		get_node("Turret").set_global_pos(turret_pos)
+		get_node("Turret/Timer").start()
+		get_node("Turret/Timer_turret_down").start()
+		set_process_unhandled_input(false) 
+		update()
 
 func add_life(lifeValue):
 	if is_dead:
 		return
-		
+	
+	if hasShield and lifeValue < 0:
+		shield_damage +=lifeValue
+		if shield_damage <= 0:
+			hasShield = false
+			shield_damage = 10
+			return
+				
 	currentLife += lifeValue
 	if currentLife > life:
 		currentLife = life
-		
+	
+	update()
+	get_node("ActionMenu/Label").set_text("Life = "+str(int(currentLife*100.0/life))+"%")
 	if currentLife <= 0:
 		get_node("Particles2D").set_emitting(true)
 		set_process(false)
-
-		#sound.play("Laser_05", true)
+		get_node("Timer").stop()
+		sound.play("Explosion5", true)
 		get_node("Sprite").hide()
 		is_dead = true
 		get_node("death").start()
@@ -149,6 +204,7 @@ func _on_heal_input_event( viewport, event, shape_idx ):
     and event.button_index == BUTTON_LEFT \
     and event.pressed:
 		print("Heal")
+		sound.play("Powerup12", true)
 		action_menu.hide()
 		currentLife += int(life/3)
 		currentLife = min(currentLife, life)
@@ -165,6 +221,19 @@ func _on_powerup_input_event( viewport, event, shape_idx ):
 		action_menu.hide() 
 		get_parent().current_AP -= 3
 		get_node("../GUI/AP").set_text("Action Points:  " + str(get_parent().current_AP))
+		
+		if has_node("Shield"):
+			hasShield = true
+			update()
+		elif has_node("Granade"):
+			set_process_unhandled_input(true) 
+			hasGranade = true
+			get_node("Timer").stop()
+		elif has_node("Turret"):
+			print("Turret")
+			set_process_unhandled_input(true) 
+			hasTurret = true
+			get_node("Timer").stop()
 
 
 
@@ -198,6 +267,20 @@ func draw_circle_arc_poly( center, radius, angle_from, angle_to, color ):
     draw_polygon(points_arc, colors)
 
 func _draw():
+	if hasGranade:
+		draw_circle_arc((granade_pos-get_global_pos()).rotated(-get_rot())/get_scale().x,  granade_radius, 0, 359, Color(1,0,0))
+	
+	if hasTurret:
+		draw_circle_arc((turret_pos-get_global_pos()).rotated(-get_rot())/get_scale().x,  300, 0, 359, Color(1,0,0))
+		
+	if hasShield:
+		var center = Vector2(0,0)
+		var radius = 400
+		var angle_from = 0
+		var angle_to = 355
+		var color = Color(1, 1, 1)
+		draw_circle_arc( center, radius, angle_from, angle_to, color )
+		
 	if isMoving:
 		var p1 = Vector2(0,0)
 		for i in range(0,path.size()):
@@ -214,4 +297,30 @@ func _on_death_timeout():
 	var squad = get_tree().get_nodes_in_group("squad")
 	if squad.size() == 1:
 		print("Game OVER :(")
+		get_tree().get_root().get_node("level/loose").show()
+		get_tree().set_pause(true)
 	queue_free()
+
+func shoot_granade(pos):
+	var enemies = get_tree().get_nodes_in_group("enemies")
+	for e in enemies:
+		var d = granade_pos.distance_to(e.get_global_pos())
+		if d < granade_radius:
+			e.add_life(-10)
+		get_node("ParticleGranade").set_global_pos(granade_pos)
+		get_node("ParticleGranade").set_emitting(true)
+		get_node("timer_granade").start()
+
+
+func _on_timer_granade_timeout():
+	get_node("ParticleGranade").set_emitting(false)
+
+
+func _on_Timer_turret_timeout():
+	get_node("Turret/weapon").fire_weapon(shootAngle)
+	print ("shooting")
+
+
+func _on_Timer_turret_down_timeout():
+	get_node("Turret/Timer").stop()
+	get_node("Turret").hide()
